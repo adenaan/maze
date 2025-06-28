@@ -1,73 +1,113 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Mobile Game</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Canvas Game</title>
     <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
         canvas {
-            border: 1px solid black;
+            border: 1px solid #333;
+            background-color: #fff;
         }
     </style>
 </head>
 <body>
-    <canvas id="gameCanvas" width="320" height="480"></canvas>
-    
+    <canvas id="gameCanvas" width="300" height="500"></canvas>
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
 
-        // Player character
-        let player = {
-            x: 50,
-            y: 50,
-            speed: 5,
-            size: 10
+        let ball = {
+            x: canvas.width / 2,
+            y: canvas.height - 30,
+            radius: 15,
+            color: 'blue',
+            dx: 0,
+            dy: 0,
         };
 
-        // Coins
-        let coins = [{
-            x: 100,
-            y: 100,
-            size: 5,
-            collected: false
-        }];
+        let target = {
+            x: Math.random() * (canvas.width - 30) + 15,
+            y: Math.random() * (canvas.height - 30) + 15,
+            radius: 10,
+            color: 'red',
+        };
 
-        // Obstacles
-        let obstacles = [{
-            x: 200,
-            y: 200,
-            size: 20
-        }];
+        let score = 0;
+        let targetAppeared = true;
 
-        function drawPlayer() {
-            ctx.fillStyle = 'blue';
-            ctx.fillRect(player.x, player.y, player.size, player.size);
+        function drawBall() {
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            ctx.fillStyle = ball.color;
+            ctx.fill();
+            ctx.closePath();
         }
 
-        function drawCoins() {
-            ctx.fillStyle = 'yellow';
-            coins.forEach(coin => {
-                if (!coin.collected) {
-                    ctx.fillRect(coin.x, coin.y, coin.size, coin.size);
-                }
-            });
+        function drawTarget() {
+            if (targetAppeared) {
+                ctx.beginPath();
+                ctx.arc(target.x, target.y, target.radius, 0, Math.PI * 2);
+                ctx.fillStyle = target.color;
+                ctx.fill();
+                ctx.closePath();
+            }
         }
 
-        function drawObstacles() {
-            ctx.fillStyle = 'red';
-            obstacles.forEach(obstacle => {
-                ctx.fillRect(obstacle.x, obstacle.y, obstacle.size, obstacle.size);
-            });
+        function checkCollision() {
+            const dist = Math.hypot(ball.x - target.x, ball.y - target.y);
+            if (dist < ball.radius + target.radius) {
+                score++;
+                targetAppeared = false;
+                setTimeout(() => {
+                    target.x = Math.random() * (canvas.width - 30) + 15;
+                    target.y = Math.random() * (canvas.height - 30) + 15;
+                    targetAppeared = true;
+                }, 1000);
+            }
         }
+
+        function update() {
+            ball.x += ball.dx;
+            ball.y += ball.dy;
+
+            // Boundary detection
+            if (ball.x + ball.radius > canvas.width || ball.x - ball.radius < 0) {
+                ball.dx = -ball.dx;
+            }
+            if (ball.y + ball.radius > canvas.height || ball.y - ball.radius < 0) {
+                ball.dy = -ball.dy;
+            }
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawBall();
+            drawTarget();
+            checkCollision();
+            ctx.fillStyle = 'black';
+            ctx.fillText(`Score: ${score}`, 10, 20);
+        }
+
+        function touchStart(event) {
+            const touch = event.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            ball.dx = (touch.clientX - rect.left - ball.x) / 20;
+            ball.dy = (touch.clientY - rect.top - ball.y) / 20;
+        }
+        canvas.addEventListener('touchstart', touchStart);
 
         function gameLoop() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            drawPlayer();
-            drawCoins();
-            drawObstacles();
+            update();
             requestAnimationFrame(gameLoop);
         }
 
-        // Game initialization
         gameLoop();
     </script>
 </body>
