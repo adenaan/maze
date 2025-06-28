@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mobile Game</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="320" height="480"></canvas>
+    
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Player character
+        let player = {
+            x: 50,
+            y: 50,
+            speed: 5,
+            size: 10
+        };
+
+        // Coins
+        let coins = [{
+            x: 100,
+            y: 100,
+            size: 5,
+            collected: false
+        }];
+
+        // Obstacles
+        let obstacles = [{
+            x: 200,
+            y: 200,
+            size: 20
+        }];
+
+        function drawPlayer() {
+            ctx.fillStyle = 'blue';
+            ctx.fillRect(player.x, player.y, player.size, player.size);
+        }
+
+        function drawCoins() {
+            ctx.fillStyle = 'yellow';
+            coins.forEach(coin => {
+                if (!coin.collected) {
+                    ctx.fillRect(coin.x, coin.y, coin.size, coin.size);
+                }
+            });
+        }
+
+        function drawObstacles() {
+            ctx.fillStyle = 'red';
+            obstacles.forEach(obstacle => {
+                ctx.fillRect(obstacle.x, obstacle.y, obstacle.size, obstacle.size);
+            });
+        }
+
+        function gameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawPlayer();
+            drawCoins();
+            drawObstacles();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Game initialization
+        gameLoop();
+    </script>
+</body>
+</html>
