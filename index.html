@@ -20,95 +20,83 @@
     </style>
 </head>
 <body>
-    <canvas id="gameCanvas" width="300" height="500"></canvas>
-    <script>
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
+<canvas id="gameCanvas" width="300" height="500"></canvas>
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
 
-        let ball = {
-            x: canvas.width / 2,
-            y: canvas.height - 30,
-            radius: 15,
-            color: 'blue',
-            dx: 0,
-            dy: 0,
-        };
+let ball = { x: canvas.width / 2, y: canvas.height - 30, radius: 15, color: 'blue' };
+let target = { x: Math.random() * (canvas.width - 30) + 15, y: Math.random() * (canvas.height - 50), width: 30, height: 30 };
+let level = 1;
 
-        let target = {
-            x: Math.random() * (canvas.width - 30) + 15,
-            y: Math.random() * (canvas.height - 30) + 15,
-            radius: 10,
-            color: 'red',
-        };
+function drawBall() {
+    ctx.beginPath();
+    ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+    ctx.fillStyle = ball.color;
+    ctx.fill();
+    ctx.closePath();
+}
 
-        let score = 0;
-        let targetAppeared = true;
+function drawTarget() {
+    ctx.fillStyle = 'red';
+    ctx.fillRect(target.x, target.y, target.width, target.height);
+}
 
-        function drawBall() {
-            ctx.beginPath();
-            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
-            ctx.fillStyle = ball.color;
-            ctx.fill();
-            ctx.closePath();
-        }
+function drawLevel() {
+    ctx.fillStyle = "black";
+    ctx.font = "16px Arial";
+    ctx.fillText("Level: " + level, 10, 20);
+}
 
-        function drawTarget() {
-            if (targetAppeared) {
-                ctx.beginPath();
-                ctx.arc(target.x, target.y, target.radius, 0, Math.PI * 2);
-                ctx.fillStyle = target.color;
-                ctx.fill();
-                ctx.closePath();
-            }
-        }
+function checkCollision() {
+    if (ball.x > target.x && ball.x < target.x + target.width && ball.y > target.y && ball.y < target.y + target.height) {
+        // Ball hits the target
+        level++;
+        resetGame();
+    }
+}
 
-        function checkCollision() {
-            const dist = Math.hypot(ball.x - target.x, ball.y - target.y);
-            if (dist < ball.radius + target.radius) {
-                score++;
-                targetAppeared = false;
-                setTimeout(() => {
-                    target.x = Math.random() * (canvas.width - 30) + 15;
-                    target.y = Math.random() * (canvas.height - 30) + 15;
-                    targetAppeared = true;
-                }, 1000);
-            }
-        }
+function resetGame() {
+    // Randomly relocate the target
+    target.x = Math.random() * (canvas.width - target.width);
+    target.y = Math.random() * (canvas.height - target.height - 20);
+    // Reset ball position
+    ball.x = canvas.width / 2;
+    ball.y = canvas.height - 30;
+}
 
-        function update() {
-            ball.x += ball.dx;
-            ball.y += ball.dy;
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawBall();
+    drawTarget();
+    drawLevel();
+    checkCollision();
+}
 
-            // Boundary detection
-            if (ball.x + ball.radius > canvas.width || ball.x - ball.radius < 0) {
-                ball.dx = -ball.dx;
-            }
-            if (ball.y + ball.radius > canvas.height || ball.y - ball.radius < 0) {
-                ball.dy = -ball.dy;
-            }
+function update() {
+    draw();
+    requestAnimationFrame(update);
+}
 
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            drawBall();
-            drawTarget();
-            checkCollision();
-            ctx.fillStyle = 'black';
-            ctx.fillText(`Score: ${score}`, 10, 20);
-        }
+// Control the ball with arrow keys
+window.addEventListener('keydown', function(event) {
+    switch(event.key) {
+        case 'ArrowLeft':
+            ball.x -= 10;
+            break;
+        case 'ArrowRight':
+            ball.x += 10;
+            break;
+        case 'ArrowUp':
+            ball.y -= 10;
+            break;
+        case 'ArrowDown':
+            ball.y += 10;
+            break;
+    }
+});
 
-        function touchStart(event) {
-            const touch = event.touches[0];
-            const rect = canvas.getBoundingClientRect();
-            ball.dx = (touch.clientX - rect.left - ball.x) / 20;
-            ball.dy = (touch.clientY - rect.top - ball.y) / 20;
-        }
-        canvas.addEventListener('touchstart', touchStart);
-
-        function gameLoop() {
-            update();
-            requestAnimationFrame(gameLoop);
-        }
-
-        gameLoop();
-    </script>
+update();
+</script>
 </body>
 </html>
